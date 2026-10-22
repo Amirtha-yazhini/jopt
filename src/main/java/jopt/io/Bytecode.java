@@ -15,6 +15,7 @@ import org.objectweb.asm.util.TraceMethodVisitor;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,28 +70,45 @@ public final class Bytecode {
         return (4 - ((offset + 1) % 4)) % 4;
     }
 
+    /** One line of a listing and the source line it came from ({@code -1} for labels and unknown). */
+    public record Row(String text, int line) {}
+
     /** Disassembly of a method's code (no frames), one instruction per line. */
     public static String listing(MethodNode m) {
+        StringBuilder out = new StringBuilder();
+        for (Row r : rows(m)) out.append(r.text()).append('\n');
+        return out.toString().stripTrailing();
+    }
+
+    /** The lines of {@link #listing}, each with the source line from the method's line number table. */
+    public static List<Row> rows(MethodNode m) {
         Textifier t = new Textifier();
         TraceMethodVisitor v = new TraceMethodVisitor(t);
         for (TryCatchBlockNode tc : m.tryCatchBlocks) tc.accept(v);
         m.instructions.accept(v);
         StringWriter sw = new StringWriter();
         t.print(new PrintWriter(sw));
-        List<String> lines = new java.util.ArrayList<>();
+        List<String> lines = new ArrayList<>();
+        List<Integer> sourceLines = new ArrayList<>();
         boolean inBootstrapArgs = false;
+        int source = -1;
         for (String l : sw.toString().split("\n")) {
             l = l.stripTrailing();
             if (inBootstrapArgs) { // invokedynamic's bootstrap method and arguments span many lines
                 inBootstrapArgs = !l.strip().equals("]");
                 continue;
             }
-            if (l.isBlank() || l.strip().startsWith("FRAME") || l.strip().startsWith("LINENUMBER")) continue;
+            if (l.strip().startsWith("LINENUMBER")) { // "LINENUMBER 12 L3": applies to the instructions that follow
+                source = Integer.parseInt(l.strip().split("\\s+")[1]);
+                continue;
+            }
+            if (l.isBlank() || l.strip().startsWith("FRAME")) continue;
             if (l.contains("INVOKEDYNAMIC") && l.endsWith("[")) {
                 inBootstrapArgs = true;
                 l = l.substring(0, l.length() - 1).stripTrailing();
             }
             lines.add(l);
+            sourceLines.add(source);
         }
         // Show only labels something refers to (jumps, switches, exception ranges); renumber them.
         Set<String> used = new HashSet<>();
@@ -104,18 +122,18 @@ public final class Bytecode {
             String s = l.strip();
             if (LABEL_DEF.matcher(l).matches() && used.contains(s)) renamed.put(s, "L" + renamed.size());
         }
-        StringBuilder out = new StringBuilder();
-        for (String l : lines) {
+        List<Row> out = new ArrayList<>();
+        for (int i = 0; i < lines.size(); i++) {
+            String l = lines.get(i);
             if (LABEL_DEF.matcher(l).matches()) {
-                if (!used.contains(l.strip())) continue;
-                out.append(renamed.get(l.strip())).append(':');
+                if (used.contains(l.strip())) out.add(new Row(renamed.get(l.strip()) + ":", -1));
             } else {
                 String body = l.startsWith("    ") ? l.substring(4) : l;
-                out.append("  ").append(LABEL_REF.matcher(body).replaceAll(r -> renamed.getOrDefault(r.group(), r.group())));
+                String text = "  " + LABEL_REF.matcher(body).replaceAll(r -> renamed.getOrDefault(r.group(), r.group()));
+                out.add(new Row(text, l.strip().startsWith("TRYCATCHBLOCK") ? -1 : sourceLines.get(i)));
             }
-            out.append('\n');
         }
-        return out.toString().stripTrailing();
+        return out;
     }
 
     private static final Pattern LABEL_DEF = Pattern.compile("\\s*L\\d+");

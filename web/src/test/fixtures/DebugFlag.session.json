@@ -1,0 +1,1371 @@
+{
+ "status": "optimized",
+ "compilation": {
+  "fileName": "DebugFlag.java",
+  "release": "21",
+  "diagnostics": []
+ },
+ "passes": [
+  "fold",
+  "peephole",
+  "dse",
+  "cfg"
+ ],
+ "disabled": [],
+ "classes": [
+  {
+   "name": "DebugFlag",
+   "fileBytesBefore": 881,
+   "fileBytesAfter": 374,
+   "rewritten": true,
+   "unchangedReason": null,
+   "verification": "passed",
+   "verificationDetail": null
+  }
+ ],
+ "methods": [
+  {
+   "id": "DebugFlag.<init>()V",
+   "owner": "DebugFlag",
+   "name": "<init>",
+   "desc": "()V",
+   "outcome": "NOTHING_APPLIED",
+   "outcomeDetail": "no pass changed anything",
+   "steps": [
+    {
+     "index": 0,
+     "kind": "input",
+     "round": 0,
+     "pass": null,
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": null,
+      "bytecode": [
+       {
+        "text": "  ALOAD 0",
+        "line": 1
+       },
+       {
+        "text": "  INVOKESPECIAL java/lang/Object.<init> ()V",
+        "line": 1
+       },
+       {
+        "text": "  RETURN",
+        "line": 1
+       }
+      ],
+      "loweringError": null,
+      "instructions": 3,
+      "codeBytes": 5,
+      "irBlocks": null,
+      "irInstructions": null
+     }
+    },
+    {
+     "index": 1,
+     "kind": "build",
+     "round": 0,
+     "pass": null,
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  ALOAD 0",
+        "line": 1
+       },
+       {
+        "text": "  INVOKESPECIAL java/lang/Object.<init> ()V",
+        "line": 1
+       },
+       {
+        "text": "  RETURN",
+        "line": 1
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ALOAD 0",
+        "line": 1
+       },
+       {
+        "text": "  INVOKESPECIAL java/lang/Object.<init> ()V",
+        "line": 1
+       },
+       {
+        "text": "  RETURN",
+        "line": 1
+       }
+      ],
+      "loweringError": null,
+      "instructions": 3,
+      "codeBytes": 5,
+      "irBlocks": 1,
+      "irInstructions": 3
+     }
+    },
+    {
+     "index": 2,
+     "kind": "pass",
+     "round": 1,
+     "pass": "fold",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 3,
+     "kind": "pass",
+     "round": 1,
+     "pass": "peephole",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 4,
+     "kind": "pass",
+     "round": 1,
+     "pass": "dse",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 5,
+     "kind": "pass",
+     "round": 1,
+     "pass": "cfg",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 6,
+     "kind": "decision",
+     "round": 0,
+     "pass": null,
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": null,
+      "bytecode": [
+       {
+        "text": "  ALOAD 0",
+        "line": 1
+       },
+       {
+        "text": "  INVOKESPECIAL java/lang/Object.<init> ()V",
+        "line": 1
+       },
+       {
+        "text": "  RETURN",
+        "line": 1
+       }
+      ],
+      "loweringError": null,
+      "instructions": 3,
+      "codeBytes": 5,
+      "irBlocks": null,
+      "irInstructions": null
+     }
+    }
+   ],
+   "rounds": 1,
+   "counters": {}
+  },
+  {
+   "id": "DebugFlag.compute(I)I",
+   "owner": "DebugFlag",
+   "name": "compute",
+   "desc": "(I)I",
+   "outcome": "REPLACED",
+   "outcomeDetail": "24 -> 4 bytes, 14 -> 4 instructions",
+   "steps": [
+    {
+     "index": 0,
+     "kind": "input",
+     "round": 0,
+     "pass": null,
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": null,
+      "bytecode": [
+       {
+        "text": "  ICONST_0",
+        "line": 3
+       },
+       {
+        "text": "  ISTORE 1",
+        "line": 3
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  ICONST_2",
+        "line": 4
+       },
+       {
+        "text": "  IMUL",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 4
+       },
+       {
+        "text": "  ILOAD 1",
+        "line": 5
+       },
+       {
+        "text": "  IFEQ L0",
+        "line": 5
+       },
+       {
+        "text": "  GETSTATIC java/lang/System.out : Ljava/io/PrintStream;",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEDYNAMIC makeConcatWithConstants(I)Ljava/lang/String;",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEVIRTUAL java/io/PrintStream.println (Ljava/lang/String;)V",
+        "line": 6
+       },
+       {
+        "text": "L0:",
+        "line": -1
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 8
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "loweringError": null,
+      "instructions": 14,
+      "codeBytes": 24,
+      "irBlocks": null,
+      "irInstructions": null
+     }
+    },
+    {
+     "index": 1,
+     "kind": "build",
+     "round": 0,
+     "pass": null,
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  CONST 0",
+        "line": 3
+       },
+       {
+        "text": "  ISTORE 1",
+        "line": 3
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  CONST 2",
+        "line": 4
+       },
+       {
+        "text": "  IMUL",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 4
+       },
+       {
+        "text": "  ILOAD 1",
+        "line": 5
+       },
+       {
+        "text": "  IFEQ B1 else B2",
+        "line": 5
+       },
+       {
+        "text": "B2:",
+        "line": -1
+       },
+       {
+        "text": "  GETSTATIC java/lang/System.out : Ljava/io/PrintStream;",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEDYNAMIC makeConcatWithConstants (I)Ljava/lang/String;",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEVIRTUAL java/io/PrintStream.println (Ljava/lang/String;)V",
+        "line": 6
+       },
+       {
+        "text": "  GOTO B1",
+        "line": 6
+       },
+       {
+        "text": "B1:",
+        "line": -1
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 8
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ICONST_0",
+        "line": 3
+       },
+       {
+        "text": "  ISTORE 1",
+        "line": 3
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  ICONST_2",
+        "line": 4
+       },
+       {
+        "text": "  IMUL",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 4
+       },
+       {
+        "text": "  ILOAD 1",
+        "line": 5
+       },
+       {
+        "text": "  IFEQ L0",
+        "line": 5
+       },
+       {
+        "text": "  GETSTATIC java/lang/System.out : Ljava/io/PrintStream;",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEDYNAMIC makeConcatWithConstants(I)Ljava/lang/String;",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEVIRTUAL java/io/PrintStream.println (Ljava/lang/String;)V",
+        "line": 6
+       },
+       {
+        "text": "L0:",
+        "line": -1
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 8
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "loweringError": null,
+      "instructions": 14,
+      "codeBytes": 24,
+      "irBlocks": 3,
+      "irInstructions": 15
+     }
+    },
+    {
+     "index": 2,
+     "kind": "pass",
+     "round": 1,
+     "pass": "fold",
+     "changes": 2,
+     "counters": {
+      "loads replaced by constants": 1,
+      "branches folded": 1
+     },
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  CONST 0",
+        "line": 3
+       },
+       {
+        "text": "  ISTORE 1",
+        "line": 3
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  CONST 2",
+        "line": 4
+       },
+       {
+        "text": "  IMUL",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 4
+       },
+       {
+        "text": "  CONST 0",
+        "line": 5
+       },
+       {
+        "text": "  POP",
+        "line": 5
+       },
+       {
+        "text": "  GOTO B1",
+        "line": 5
+       },
+       {
+        "text": "B2:",
+        "line": -1
+       },
+       {
+        "text": "  GETSTATIC java/lang/System.out : Ljava/io/PrintStream;",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEDYNAMIC makeConcatWithConstants (I)Ljava/lang/String;",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEVIRTUAL java/io/PrintStream.println (Ljava/lang/String;)V",
+        "line": 6
+       },
+       {
+        "text": "  GOTO B1",
+        "line": 6
+       },
+       {
+        "text": "B1:",
+        "line": -1
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 8
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ICONST_0",
+        "line": 3
+       },
+       {
+        "text": "  ISTORE 1",
+        "line": 3
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  ICONST_2",
+        "line": 4
+       },
+       {
+        "text": "  IMUL",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 4
+       },
+       {
+        "text": "  ICONST_0",
+        "line": 5
+       },
+       {
+        "text": "  POP",
+        "line": 5
+       },
+       {
+        "text": "  GOTO L0",
+        "line": 5
+       },
+       {
+        "text": "  GETSTATIC java/lang/System.out : Ljava/io/PrintStream;",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEDYNAMIC makeConcatWithConstants(I)Ljava/lang/String;",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEVIRTUAL java/io/PrintStream.println (Ljava/lang/String;)V",
+        "line": 6
+       },
+       {
+        "text": "L0:",
+        "line": -1
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 8
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "loweringError": null,
+      "instructions": 15,
+      "codeBytes": 25,
+      "irBlocks": 3,
+      "irInstructions": 16
+     }
+    },
+    {
+     "index": 3,
+     "kind": "pass",
+     "round": 1,
+     "pass": "peephole",
+     "changes": 2,
+     "counters": {
+      "strength reductions": 1,
+      "unused values removed": 1
+     },
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  CONST 0",
+        "line": 3
+       },
+       {
+        "text": "  ISTORE 1",
+        "line": 3
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  CONST 1",
+        "line": 4
+       },
+       {
+        "text": "  ISHL",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 4
+       },
+       {
+        "text": "  GOTO B1",
+        "line": 5
+       },
+       {
+        "text": "B2:",
+        "line": -1
+       },
+       {
+        "text": "  GETSTATIC java/lang/System.out : Ljava/io/PrintStream;",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEDYNAMIC makeConcatWithConstants (I)Ljava/lang/String;",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEVIRTUAL java/io/PrintStream.println (Ljava/lang/String;)V",
+        "line": 6
+       },
+       {
+        "text": "  GOTO B1",
+        "line": 6
+       },
+       {
+        "text": "B1:",
+        "line": -1
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 8
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ICONST_0",
+        "line": 3
+       },
+       {
+        "text": "  ISTORE 1",
+        "line": 3
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  ICONST_1",
+        "line": 4
+       },
+       {
+        "text": "  ISHL",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 4
+       },
+       {
+        "text": "  GOTO L0",
+        "line": 5
+       },
+       {
+        "text": "  GETSTATIC java/lang/System.out : Ljava/io/PrintStream;",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEDYNAMIC makeConcatWithConstants(I)Ljava/lang/String;",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEVIRTUAL java/io/PrintStream.println (Ljava/lang/String;)V",
+        "line": 6
+       },
+       {
+        "text": "L0:",
+        "line": -1
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 8
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "loweringError": null,
+      "instructions": 13,
+      "codeBytes": 23,
+      "irBlocks": 3,
+      "irInstructions": 14
+     }
+    },
+    {
+     "index": 4,
+     "kind": "pass",
+     "round": 1,
+     "pass": "dse",
+     "changes": 1,
+     "counters": {
+      "dead stores removed": 1
+     },
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  CONST 0",
+        "line": 3
+       },
+       {
+        "text": "  POP",
+        "line": 3
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  CONST 1",
+        "line": 4
+       },
+       {
+        "text": "  ISHL",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 4
+       },
+       {
+        "text": "  GOTO B1",
+        "line": 5
+       },
+       {
+        "text": "B2:",
+        "line": -1
+       },
+       {
+        "text": "  GETSTATIC java/lang/System.out : Ljava/io/PrintStream;",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEDYNAMIC makeConcatWithConstants (I)Ljava/lang/String;",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEVIRTUAL java/io/PrintStream.println (Ljava/lang/String;)V",
+        "line": 6
+       },
+       {
+        "text": "  GOTO B1",
+        "line": 6
+       },
+       {
+        "text": "B1:",
+        "line": -1
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 8
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ICONST_0",
+        "line": 3
+       },
+       {
+        "text": "  POP",
+        "line": 3
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  ICONST_1",
+        "line": 4
+       },
+       {
+        "text": "  ISHL",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 4
+       },
+       {
+        "text": "  GOTO L0",
+        "line": 5
+       },
+       {
+        "text": "  GETSTATIC java/lang/System.out : Ljava/io/PrintStream;",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEDYNAMIC makeConcatWithConstants(I)Ljava/lang/String;",
+        "line": 6
+       },
+       {
+        "text": "  INVOKEVIRTUAL java/io/PrintStream.println (Ljava/lang/String;)V",
+        "line": 6
+       },
+       {
+        "text": "L0:",
+        "line": -1
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 8
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "loweringError": null,
+      "instructions": 13,
+      "codeBytes": 23,
+      "irBlocks": 3,
+      "irInstructions": 14
+     }
+    },
+    {
+     "index": 5,
+     "kind": "pass",
+     "round": 1,
+     "pass": "cfg",
+     "changes": 2,
+     "counters": {
+      "unreachable blocks removed": 1,
+      "blocks merged": 1
+     },
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  CONST 0",
+        "line": 3
+       },
+       {
+        "text": "  POP",
+        "line": 3
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  CONST 1",
+        "line": 4
+       },
+       {
+        "text": "  ISHL",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 4
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 8
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ICONST_0",
+        "line": 3
+       },
+       {
+        "text": "  POP",
+        "line": 3
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  ICONST_1",
+        "line": 4
+       },
+       {
+        "text": "  ISHL",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 4
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 8
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "loweringError": null,
+      "instructions": 8,
+      "codeBytes": 8,
+      "irBlocks": 1,
+      "irInstructions": 8
+     }
+    },
+    {
+     "index": 6,
+     "kind": "pass",
+     "round": 2,
+     "pass": "fold",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 7,
+     "kind": "pass",
+     "round": 2,
+     "pass": "peephole",
+     "changes": 2,
+     "counters": {
+      "unused values removed": 1,
+      "store/load pairs": 1
+     },
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  CONST 1",
+        "line": 4
+       },
+       {
+        "text": "  ISHL",
+        "line": 4
+       },
+       {
+        "text": "  DUP",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 4
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  ICONST_1",
+        "line": 4
+       },
+       {
+        "text": "  ISHL",
+        "line": 4
+       },
+       {
+        "text": "  DUP",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 4
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "loweringError": null,
+      "instructions": 6,
+      "codeBytes": 6,
+      "irBlocks": 1,
+      "irInstructions": 6
+     }
+    },
+    {
+     "index": 8,
+     "kind": "pass",
+     "round": 2,
+     "pass": "dse",
+     "changes": 1,
+     "counters": {
+      "dead stores removed": 1
+     },
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  CONST 1",
+        "line": 4
+       },
+       {
+        "text": "  ISHL",
+        "line": 4
+       },
+       {
+        "text": "  DUP",
+        "line": 4
+       },
+       {
+        "text": "  POP",
+        "line": 4
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  ICONST_1",
+        "line": 4
+       },
+       {
+        "text": "  ISHL",
+        "line": 4
+       },
+       {
+        "text": "  DUP",
+        "line": 4
+       },
+       {
+        "text": "  POP",
+        "line": 4
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "loweringError": null,
+      "instructions": 6,
+      "codeBytes": 6,
+      "irBlocks": 1,
+      "irInstructions": 6
+     }
+    },
+    {
+     "index": 9,
+     "kind": "pass",
+     "round": 2,
+     "pass": "cfg",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 10,
+     "kind": "pass",
+     "round": 3,
+     "pass": "fold",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 11,
+     "kind": "pass",
+     "round": 3,
+     "pass": "peephole",
+     "changes": 1,
+     "counters": {
+      "unused values removed": 1
+     },
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  CONST 1",
+        "line": 4
+       },
+       {
+        "text": "  ISHL",
+        "line": 4
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  ICONST_1",
+        "line": 4
+       },
+       {
+        "text": "  ISHL",
+        "line": 4
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "loweringError": null,
+      "instructions": 4,
+      "codeBytes": 4,
+      "irBlocks": 1,
+      "irInstructions": 4
+     }
+    },
+    {
+     "index": 12,
+     "kind": "pass",
+     "round": 3,
+     "pass": "dse",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 13,
+     "kind": "pass",
+     "round": 3,
+     "pass": "cfg",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 14,
+     "kind": "pass",
+     "round": 4,
+     "pass": "fold",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 15,
+     "kind": "pass",
+     "round": 4,
+     "pass": "peephole",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 16,
+     "kind": "pass",
+     "round": 4,
+     "pass": "dse",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 17,
+     "kind": "pass",
+     "round": 4,
+     "pass": "cfg",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 18,
+     "kind": "decision",
+     "round": 0,
+     "pass": null,
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  CONST 1",
+        "line": 4
+       },
+       {
+        "text": "  ISHL",
+        "line": 4
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ILOAD 0",
+        "line": 4
+       },
+       {
+        "text": "  ICONST_1",
+        "line": 4
+       },
+       {
+        "text": "  ISHL",
+        "line": 4
+       },
+       {
+        "text": "  IRETURN",
+        "line": 8
+       }
+      ],
+      "loweringError": null,
+      "instructions": 4,
+      "codeBytes": 4,
+      "irBlocks": null,
+      "irInstructions": null
+     }
+    }
+   ],
+   "rounds": 4,
+   "counters": {
+    "loads replaced by constants": 1,
+    "branches folded": 1,
+    "strength reductions": 1,
+    "unused values removed": 3,
+    "dead stores removed": 2,
+    "unreachable blocks removed": 1,
+    "blocks merged": 1,
+    "store/load pairs": 1
+   }
+  }
+ ],
+ "methodsNotTraced": 0,
+ "summary": {
+  "classes": 1,
+  "classesRewritten": 1,
+  "methods": 2,
+  "methodsReplaced": 1,
+  "instructionsBefore": 17,
+  "instructionsAfter": 7,
+  "codeBytesBefore": 29,
+  "codeBytesAfter": 9,
+  "fileBytesBefore": 881,
+  "fileBytesAfter": 374,
+  "counters": {
+   "loads replaced by constants": 1,
+   "branches folded": 1,
+   "strength reductions": 1,
+   "unused values removed": 3,
+   "dead stores removed": 2,
+   "unreachable blocks removed": 1,
+   "blocks merged": 1,
+   "store/load pairs": 1
+  }
+ },
+ "warnings": [],
+ "timings": {
+  "compileMs": 34.107875,
+  "optimizeMs": 4.334417,
+  "verifyMs": 0.093375
+ }
+}

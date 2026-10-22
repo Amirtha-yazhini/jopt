@@ -32,10 +32,57 @@ Requires JDK 21 (the Gradle wrapper downloads Gradle itself).
 jopt optimize app.jar -o app-opt.jar --report report.html
 jopt show app.jar com.example.Foo bar     # one method, before and after, side by side
 jopt verify app-opt.jar                   # load and link every class (runs HotSpot's verifier)
+jopt playground --port 7070               # interactive playground (see below)
 ```
 
 Options: `--cp a.jar;b.jar` adds libraries the input depends on (needed to compute stack map frames
 for classes that use types from them). `--disable fold,peephole,dse,cfg` switches passes off.
+
+## Interactive playground
+
+A local web app for watching the optimizer work: write Java (or pick one of ten examples), press
+**Optimize**, and replay every pass jopt ran on each method, with bytecode/IR diffs, the pass's own
+counts, explanations, measured sizes, and links from each instruction back to its source line.
+
+```sh
+cd web && npm install && npm run build && cd ..   # build the frontend once (Node 20+)
+./gradlew playground                              # http://localhost:7070
+```
+
+For frontend development, run `./gradlew playground` and `npm run dev` in `web/` (Vite on
+http://localhost:5173, proxying `/api` to port 7070).
+
+What is real and what is not:
+
+- **Everything shown comes from the actual optimizer.** The backend compiles the source with the
+  JDK's `javac` (`--release 21`), runs jopt's `Optimizer` with a trace hook that snapshots the IR
+  after **every pass run**, lowers each snapshot with jopt's own `IRWriter`, and finally loads and
+  links the output classes in HotSpot (its bytecode verifier runs; static initializers do not).
+- **Replay, not live execution.** jopt optimizes a method in a few milliseconds; the timeline replays
+  the recorded snapshots. Pass runs that changed nothing can be shown or hidden.
+- **Sizes, not speed.** Instruction counts and code bytes are measured. There are no runtime
+  benchmarks: the playground never runs your code.
+- Explanations are documentation keyed by the counter names the passes emit
+  ([`Catalog`](src/main/java/jopt/playground/Catalog.java)); a test checks every counter the examples
+  produce is documented.
+
+Trust boundary: the server listens on 127.0.0.1 only, rejects non-loopback `Host` headers, limits
+source size (64 KiB), run time (20 s) and concurrency (2 runs), compiles with annotation processing
+off and an empty class path, and never executes submitted code. It is a local developer tool, not a
+hardened public service. Requires a JDK (not a JRE) because it uses `javac`.
+
+API (all responses are `{"ok": true, "data": ...}` or `{"ok": false, "error": {"code", "message"}}`):
+
+| Endpoint | |
+|---|---|
+| `GET /api/meta` | passes and the explanation catalog |
+| `GET /api/examples` | example programs with the transformations they demonstrate |
+| `POST /api/optimize?disable=fold,dse` | body: Java source (UTF-8 text); returns the recorded session |
+
+Tests: `./gradlew test` (includes the playground service, HTTP API and a check that tracing does not
+change optimizer output), `npm test` (reducer, metrics, response validation), `npm run lint`,
+`npm run typecheck`, and `npm run e2e` (Playwright, system Chrome, against the real backend; needs
+`./gradlew installDist` and `npm run build` first).
 
 ## How it works
 
@@ -152,6 +199,9 @@ src/main/java/jopt/
   opt/                 passes, the fixed-point driver (Optimizer), report model
   io/                  jar/dir I/O, class hierarchy for frame computation, link check, listings
   report/              HTML report
+  playground/          playground backend: javac wrapper, trace recorder, HTTP API, examples
+src/main/resources/jopt/playground/examples/   example programs for the playground
+web/                   playground frontend (Vite + React + TypeScript + Monaco)
 src/demo/java/demo/    sample app optimized by `./gradlew demo`
 src/test/java/jopt/    differential, golden-output, real-world and unit tests
 ```

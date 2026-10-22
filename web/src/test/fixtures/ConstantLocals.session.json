@@ -1,0 +1,1004 @@
+{
+ "status": "optimized",
+ "compilation": {
+  "fileName": "ConstantLocals.java",
+  "release": "21",
+  "diagnostics": []
+ },
+ "passes": [
+  "fold",
+  "peephole",
+  "dse",
+  "cfg"
+ ],
+ "disabled": [],
+ "classes": [
+  {
+   "name": "ConstantLocals",
+   "fileBytesBefore": 282,
+   "fileBytesAfter": 261,
+   "rewritten": true,
+   "unchangedReason": null,
+   "verification": "passed",
+   "verificationDetail": null
+  }
+ ],
+ "methods": [
+  {
+   "id": "ConstantLocals.<init>()V",
+   "owner": "ConstantLocals",
+   "name": "<init>",
+   "desc": "()V",
+   "outcome": "NOTHING_APPLIED",
+   "outcomeDetail": "no pass changed anything",
+   "steps": [
+    {
+     "index": 0,
+     "kind": "input",
+     "round": 0,
+     "pass": null,
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": null,
+      "bytecode": [
+       {
+        "text": "  ALOAD 0",
+        "line": 1
+       },
+       {
+        "text": "  INVOKESPECIAL java/lang/Object.<init> ()V",
+        "line": 1
+       },
+       {
+        "text": "  RETURN",
+        "line": 1
+       }
+      ],
+      "loweringError": null,
+      "instructions": 3,
+      "codeBytes": 5,
+      "irBlocks": null,
+      "irInstructions": null
+     }
+    },
+    {
+     "index": 1,
+     "kind": "build",
+     "round": 0,
+     "pass": null,
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  ALOAD 0",
+        "line": 1
+       },
+       {
+        "text": "  INVOKESPECIAL java/lang/Object.<init> ()V",
+        "line": 1
+       },
+       {
+        "text": "  RETURN",
+        "line": 1
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ALOAD 0",
+        "line": 1
+       },
+       {
+        "text": "  INVOKESPECIAL java/lang/Object.<init> ()V",
+        "line": 1
+       },
+       {
+        "text": "  RETURN",
+        "line": 1
+       }
+      ],
+      "loweringError": null,
+      "instructions": 3,
+      "codeBytes": 5,
+      "irBlocks": 1,
+      "irInstructions": 3
+     }
+    },
+    {
+     "index": 2,
+     "kind": "pass",
+     "round": 1,
+     "pass": "fold",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 3,
+     "kind": "pass",
+     "round": 1,
+     "pass": "peephole",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 4,
+     "kind": "pass",
+     "round": 1,
+     "pass": "dse",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 5,
+     "kind": "pass",
+     "round": 1,
+     "pass": "cfg",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 6,
+     "kind": "decision",
+     "round": 0,
+     "pass": null,
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": null,
+      "bytecode": [
+       {
+        "text": "  ALOAD 0",
+        "line": 1
+       },
+       {
+        "text": "  INVOKESPECIAL java/lang/Object.<init> ()V",
+        "line": 1
+       },
+       {
+        "text": "  RETURN",
+        "line": 1
+       }
+      ],
+      "loweringError": null,
+      "instructions": 3,
+      "codeBytes": 5,
+      "irBlocks": null,
+      "irInstructions": null
+     }
+    }
+   ],
+   "rounds": 1,
+   "counters": {}
+  },
+  {
+   "id": "ConstantLocals.scaled(I)I",
+   "owner": "ConstantLocals",
+   "name": "scaled",
+   "desc": "(I)I",
+   "outcome": "REPLACED",
+   "outcomeDetail": "14 -> 5 bytes, 14 -> 4 instructions",
+   "steps": [
+    {
+     "index": 0,
+     "kind": "input",
+     "round": 0,
+     "pass": null,
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": null,
+      "bytecode": [
+       {
+        "text": "  ICONST_3",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 1",
+        "line": 4
+       },
+       {
+        "text": "  ILOAD 1",
+        "line": 5
+       },
+       {
+        "text": "  ICONST_4",
+        "line": 5
+       },
+       {
+        "text": "  IMUL",
+        "line": 5
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 5
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 1",
+        "line": 6
+       },
+       {
+        "text": "  IADD",
+        "line": 6
+       },
+       {
+        "text": "  ISTORE 3",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 7
+       },
+       {
+        "text": "  ILOAD 3",
+        "line": 7
+       },
+       {
+        "text": "  IMUL",
+        "line": 7
+       },
+       {
+        "text": "  IRETURN",
+        "line": 7
+       }
+      ],
+      "loweringError": null,
+      "instructions": 14,
+      "codeBytes": 14,
+      "irBlocks": null,
+      "irInstructions": null
+     }
+    },
+    {
+     "index": 1,
+     "kind": "build",
+     "round": 0,
+     "pass": null,
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  CONST 3",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 1",
+        "line": 4
+       },
+       {
+        "text": "  ILOAD 1",
+        "line": 5
+       },
+       {
+        "text": "  CONST 4",
+        "line": 5
+       },
+       {
+        "text": "  IMUL",
+        "line": 5
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 5
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 1",
+        "line": 6
+       },
+       {
+        "text": "  IADD",
+        "line": 6
+       },
+       {
+        "text": "  ISTORE 3",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 7
+       },
+       {
+        "text": "  ILOAD 3",
+        "line": 7
+       },
+       {
+        "text": "  IMUL",
+        "line": 7
+       },
+       {
+        "text": "  IRETURN",
+        "line": 7
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ICONST_3",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 1",
+        "line": 4
+       },
+       {
+        "text": "  ILOAD 1",
+        "line": 5
+       },
+       {
+        "text": "  ICONST_4",
+        "line": 5
+       },
+       {
+        "text": "  IMUL",
+        "line": 5
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 5
+       },
+       {
+        "text": "  ILOAD 2",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 1",
+        "line": 6
+       },
+       {
+        "text": "  IADD",
+        "line": 6
+       },
+       {
+        "text": "  ISTORE 3",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 7
+       },
+       {
+        "text": "  ILOAD 3",
+        "line": 7
+       },
+       {
+        "text": "  IMUL",
+        "line": 7
+       },
+       {
+        "text": "  IRETURN",
+        "line": 7
+       }
+      ],
+      "loweringError": null,
+      "instructions": 14,
+      "codeBytes": 14,
+      "irBlocks": 1,
+      "irInstructions": 14
+     }
+    },
+    {
+     "index": 2,
+     "kind": "pass",
+     "round": 1,
+     "pass": "fold",
+     "changes": 6,
+     "counters": {
+      "loads replaced by constants": 4,
+      "expressions folded": 2
+     },
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  CONST 3",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 1",
+        "line": 4
+       },
+       {
+        "text": "  CONST 3",
+        "line": 5
+       },
+       {
+        "text": "  CONST 4",
+        "line": 5
+       },
+       {
+        "text": "  POP2",
+        "line": 5
+       },
+       {
+        "text": "  CONST 12",
+        "line": 5
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 5
+       },
+       {
+        "text": "  CONST 12",
+        "line": 6
+       },
+       {
+        "text": "  CONST 3",
+        "line": 6
+       },
+       {
+        "text": "  POP2",
+        "line": 6
+       },
+       {
+        "text": "  CONST 15",
+        "line": 6
+       },
+       {
+        "text": "  ISTORE 3",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 7
+       },
+       {
+        "text": "  CONST 15",
+        "line": 7
+       },
+       {
+        "text": "  IMUL",
+        "line": 7
+       },
+       {
+        "text": "  IRETURN",
+        "line": 7
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ICONST_3",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 1",
+        "line": 4
+       },
+       {
+        "text": "  ICONST_3",
+        "line": 5
+       },
+       {
+        "text": "  ICONST_4",
+        "line": 5
+       },
+       {
+        "text": "  POP2",
+        "line": 5
+       },
+       {
+        "text": "  BIPUSH 12",
+        "line": 5
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 5
+       },
+       {
+        "text": "  BIPUSH 12",
+        "line": 6
+       },
+       {
+        "text": "  ICONST_3",
+        "line": 6
+       },
+       {
+        "text": "  POP2",
+        "line": 6
+       },
+       {
+        "text": "  BIPUSH 15",
+        "line": 6
+       },
+       {
+        "text": "  ISTORE 3",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 7
+       },
+       {
+        "text": "  BIPUSH 15",
+        "line": 7
+       },
+       {
+        "text": "  IMUL",
+        "line": 7
+       },
+       {
+        "text": "  IRETURN",
+        "line": 7
+       }
+      ],
+      "loweringError": null,
+      "instructions": 16,
+      "codeBytes": 20,
+      "irBlocks": 1,
+      "irInstructions": 16
+     }
+    },
+    {
+     "index": 3,
+     "kind": "pass",
+     "round": 1,
+     "pass": "peephole",
+     "changes": 4,
+     "counters": {
+      "unused values removed": 4
+     },
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  CONST 3",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 1",
+        "line": 4
+       },
+       {
+        "text": "  CONST 12",
+        "line": 5
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 5
+       },
+       {
+        "text": "  CONST 15",
+        "line": 6
+       },
+       {
+        "text": "  ISTORE 3",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 7
+       },
+       {
+        "text": "  CONST 15",
+        "line": 7
+       },
+       {
+        "text": "  IMUL",
+        "line": 7
+       },
+       {
+        "text": "  IRETURN",
+        "line": 7
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ICONST_3",
+        "line": 4
+       },
+       {
+        "text": "  ISTORE 1",
+        "line": 4
+       },
+       {
+        "text": "  BIPUSH 12",
+        "line": 5
+       },
+       {
+        "text": "  ISTORE 2",
+        "line": 5
+       },
+       {
+        "text": "  BIPUSH 15",
+        "line": 6
+       },
+       {
+        "text": "  ISTORE 3",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 7
+       },
+       {
+        "text": "  BIPUSH 15",
+        "line": 7
+       },
+       {
+        "text": "  IMUL",
+        "line": 7
+       },
+       {
+        "text": "  IRETURN",
+        "line": 7
+       }
+      ],
+      "loweringError": null,
+      "instructions": 10,
+      "codeBytes": 13,
+      "irBlocks": 1,
+      "irInstructions": 10
+     }
+    },
+    {
+     "index": 4,
+     "kind": "pass",
+     "round": 1,
+     "pass": "dse",
+     "changes": 3,
+     "counters": {
+      "dead stores removed": 3
+     },
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  CONST 3",
+        "line": 4
+       },
+       {
+        "text": "  POP",
+        "line": 4
+       },
+       {
+        "text": "  CONST 12",
+        "line": 5
+       },
+       {
+        "text": "  POP",
+        "line": 5
+       },
+       {
+        "text": "  CONST 15",
+        "line": 6
+       },
+       {
+        "text": "  POP",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 7
+       },
+       {
+        "text": "  CONST 15",
+        "line": 7
+       },
+       {
+        "text": "  IMUL",
+        "line": 7
+       },
+       {
+        "text": "  IRETURN",
+        "line": 7
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ICONST_3",
+        "line": 4
+       },
+       {
+        "text": "  POP",
+        "line": 4
+       },
+       {
+        "text": "  BIPUSH 12",
+        "line": 5
+       },
+       {
+        "text": "  POP",
+        "line": 5
+       },
+       {
+        "text": "  BIPUSH 15",
+        "line": 6
+       },
+       {
+        "text": "  POP",
+        "line": 6
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 7
+       },
+       {
+        "text": "  BIPUSH 15",
+        "line": 7
+       },
+       {
+        "text": "  IMUL",
+        "line": 7
+       },
+       {
+        "text": "  IRETURN",
+        "line": 7
+       }
+      ],
+      "loweringError": null,
+      "instructions": 10,
+      "codeBytes": 13,
+      "irBlocks": 1,
+      "irInstructions": 10
+     }
+    },
+    {
+     "index": 5,
+     "kind": "pass",
+     "round": 1,
+     "pass": "cfg",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 6,
+     "kind": "pass",
+     "round": 2,
+     "pass": "fold",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 7,
+     "kind": "pass",
+     "round": 2,
+     "pass": "peephole",
+     "changes": 3,
+     "counters": {
+      "unused values removed": 3
+     },
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 7
+       },
+       {
+        "text": "  CONST 15",
+        "line": 7
+       },
+       {
+        "text": "  IMUL",
+        "line": 7
+       },
+       {
+        "text": "  IRETURN",
+        "line": 7
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ILOAD 0",
+        "line": 7
+       },
+       {
+        "text": "  BIPUSH 15",
+        "line": 7
+       },
+       {
+        "text": "  IMUL",
+        "line": 7
+       },
+       {
+        "text": "  IRETURN",
+        "line": 7
+       }
+      ],
+      "loweringError": null,
+      "instructions": 4,
+      "codeBytes": 5,
+      "irBlocks": 1,
+      "irInstructions": 4
+     }
+    },
+    {
+     "index": 8,
+     "kind": "pass",
+     "round": 2,
+     "pass": "dse",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 9,
+     "kind": "pass",
+     "round": 2,
+     "pass": "cfg",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 10,
+     "kind": "pass",
+     "round": 3,
+     "pass": "fold",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 11,
+     "kind": "pass",
+     "round": 3,
+     "pass": "peephole",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 12,
+     "kind": "pass",
+     "round": 3,
+     "pass": "dse",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 13,
+     "kind": "pass",
+     "round": 3,
+     "pass": "cfg",
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": true,
+     "snapshot": null
+    },
+    {
+     "index": 14,
+     "kind": "decision",
+     "round": 0,
+     "pass": null,
+     "changes": 0,
+     "counters": {},
+     "sameAsPrevious": false,
+     "snapshot": {
+      "ir": [
+       {
+        "text": "B0:  (entry)",
+        "line": -1
+       },
+       {
+        "text": "  ILOAD 0",
+        "line": 7
+       },
+       {
+        "text": "  CONST 15",
+        "line": 7
+       },
+       {
+        "text": "  IMUL",
+        "line": 7
+       },
+       {
+        "text": "  IRETURN",
+        "line": 7
+       }
+      ],
+      "bytecode": [
+       {
+        "text": "  ILOAD 0",
+        "line": 7
+       },
+       {
+        "text": "  BIPUSH 15",
+        "line": 7
+       },
+       {
+        "text": "  IMUL",
+        "line": 7
+       },
+       {
+        "text": "  IRETURN",
+        "line": 7
+       }
+      ],
+      "loweringError": null,
+      "instructions": 4,
+      "codeBytes": 5,
+      "irBlocks": null,
+      "irInstructions": null
+     }
+    }
+   ],
+   "rounds": 3,
+   "counters": {
+    "loads replaced by constants": 4,
+    "expressions folded": 2,
+    "unused values removed": 7,
+    "dead stores removed": 3
+   }
+  }
+ ],
+ "methodsNotTraced": 0,
+ "summary": {
+  "classes": 1,
+  "classesRewritten": 1,
+  "methods": 2,
+  "methodsReplaced": 1,
+  "instructionsBefore": 17,
+  "instructionsAfter": 7,
+  "codeBytesBefore": 19,
+  "codeBytesAfter": 10,
+  "fileBytesBefore": 282,
+  "fileBytesAfter": 261,
+  "counters": {
+   "loads replaced by constants": 4,
+   "expressions folded": 2,
+   "unused values removed": 7,
+   "dead stores removed": 3
+  }
+ },
+ "warnings": [],
+ "timings": {
+  "compileMs": 179.620042,
+  "optimizeMs": 42.262834,
+  "verifyMs": 1.157625
+ }
+}

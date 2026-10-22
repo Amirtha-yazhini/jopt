@@ -6,6 +6,7 @@ import jopt.io.LinkCheck;
 import jopt.opt.Optimizer;
 import jopt.opt.Pass;
 import jopt.opt.Report;
+import jopt.playground.PlaygroundServer;
 import jopt.report.HtmlReport;
 
 import java.io.ByteArrayOutputStream;
@@ -34,6 +35,8 @@ public final class Main {
               jopt show <in> <class> [method]     print a method before and after optimization
               jopt verify <in> [--cp ...]         load and link every class (runs the JVM's verifier)
               jopt demo <classes-dir> <work-dir>  optimize, verify and run the bundled demo app
+              jopt playground [--port 7070] [--static web/dist]
+                                                  interactive playground on http://localhost:<port>
 
             <in>/<out> may be a .jar, a directory of classes, or a single .class file.
             passes: %s
@@ -51,6 +54,7 @@ public final class Main {
             case "show" -> show(rest);
             case "verify" -> verify(rest);
             case "demo" -> demo(rest);
+            case "playground" -> playground(rest);
             default -> {
                 System.err.print(USAGE);
                 yield 2;
@@ -191,6 +195,33 @@ public final class Main {
         res.failures().forEach(f -> System.out.println("  FAIL " + f));
         res.skipped().stream().limit(10).forEach(s -> System.out.println("  skip " + s));
         return res.ok() ? 0 : 1;
+    }
+
+    // ---- playground ----------------------------------------------------------------------------
+
+    private static int playground(String[] args) throws Exception {
+        int port = 7070;
+        Path web = Path.of("web", "dist");
+        for (int i = 0; i < args.length; i++) {
+            switch (args[i]) {
+                case "--port" -> port = Integer.parseInt(args[++i]);
+                case "--static" -> web = Path.of(args[++i]);
+                default -> {
+                    System.err.print(USAGE);
+                    return 2;
+                }
+            }
+        }
+        Path root = java.nio.file.Files.isDirectory(web) ? web : null;
+        PlaygroundServer server = PlaygroundServer.start(port, root);
+        Runtime.getRuntime().addShutdownHook(new Thread(server::close));
+        System.out.println("jopt playground listening on http://localhost:" + server.port() + "/");
+        if (root == null)
+            System.out.println("  (API only: " + web.toAbsolutePath() + " not found; run `npm run build` in web/ or `npm run dev`)");
+        else
+            System.out.println("  serving " + root.toAbsolutePath());
+        System.out.println("  user code is compiled and verified, never executed. Ctrl+C to stop.");
+        return 0;
     }
 
     // ---- demo ----------------------------------------------------------------------------------

@@ -58,3 +58,13 @@ tasks.register('demo', JavaExec) {
     def build = layout.buildDirectory.get().asFile
     args 'demo', new File(build, 'classes/java/demo').path, new File(build, 'demo').path
 }
+
+tasks.register('playground', JavaExec) {
+    group = 'application'
+    description = 'Starts the interactive playground on http://localhost:7070 (serves web/dist if it was built).'
+    dependsOn 'classes'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'jopt.Main'
+    workingDir = rootDir
+    args 'playground', '--port', (project.findProperty('playgroundPort') ?: '7070').toString()
+}

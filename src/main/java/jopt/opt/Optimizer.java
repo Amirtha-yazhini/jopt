@@ -34,12 +34,19 @@ public final class Optimizer {
     private final ClassHierarchy hierarchy;
     private final Report report;
     private final boolean keepListings;
+    private final OptimizerTrace trace;
 
     public Optimizer(Set<String> disabled, ClassHierarchy hierarchy, Report report, boolean keepListings) {
+        this(disabled, hierarchy, report, keepListings, OptimizerTrace.NONE);
+    }
+
+    public Optimizer(Set<String> disabled, ClassHierarchy hierarchy, Report report, boolean keepListings,
+                     OptimizerTrace trace) {
         this.passes = allPasses().stream().filter(p -> !disabled.contains(p.id())).toList();
         this.hierarchy = hierarchy;
         this.report = report;
         this.keepListings = keepListings;
+        this.trace = trace;
     }
 
     /** Returns the optimized class file, or {@code classFile} itself if nothing improved. */
@@ -78,6 +85,7 @@ public final class Optimizer {
             } catch (ClassHierarchy.TypeNotFoundException e) {
                 report.warnings.add(cn.name.replace('/', '.') + ": left unchanged, type " + e.getMessage()
                         + " not found (add its jar with --cp)");
+                trace.classUnchanged(cn.name, "type " + e.getMessage() + " not found");
                 changes.clear();
                 insAfter = insBefore;
                 bytesAfter = bytesBefore;
@@ -100,25 +108,42 @@ public final class Optimizer {
     /** Optimizes {@code mn} in place; returns what changed, or null if the method was left alone. */
     private Report.MethodChange optimizeMethod(String owner, MethodNode mn) {
         String where = owner.replace('/', '.') + "." + mn.name + mn.desc;
+        OptimizerTrace.MethodTrace t = trace.method(owner, mn);
+        if (t == null) t = OptimizerTrace.MethodTrace.NONE;
         try {
             MethodIR ir = IRBuilder.build(owner, mn);
+            t.irBuilt(ir);
             Counters what = new Counters();
-            for (int round = 0; round < MAX_ROUNDS; round++) {
+            for (int round = 1; round <= MAX_ROUNDS; round++) {
                 int changes = 0;
-                for (Pass p : passes) changes += p.run(ir, what);
+                for (Pass p : passes) {
+                    Counters step = new Counters(); // per-run counts for the trace; merged into the method total
+                    int n = p.run(ir, step);
+                    what.addAll(step);
+                    t.passRan(round, p.id(), n, step, ir);
+                    changes += n;
+                }
                 if (changes == 0) break;
             }
-            if (what.isEmpty()) return null;
+            if (what.isEmpty()) {
+                t.finished(OptimizerTrace.Outcome.NOTHING_APPLIED, "no pass changed anything", null);
+                return null;
+            }
 
             MethodNode opt = IRWriter.toMethodNode(ir, mn);
             int ib = Bytecode.instructions(mn.instructions), bb = Bytecode.bytes(mn.instructions);
             int ia = Bytecode.instructions(opt.instructions), ba = Bytecode.bytes(opt.instructions);
-            if (ba > bb || (ba == bb && ia >= ib)) return null; // no gain: keep the original (and its debug info)
+            if (ba > bb || (ba == bb && ia >= ib)) { // no gain: keep the original (and its debug info)
+                t.finished(OptimizerTrace.Outcome.NO_GAIN, String.format(
+                        "not smaller: %d -> %d bytes, %d -> %d instructions", bb, ba, ib, ia), opt);
+                return null;
+            }
 
             try {
                 new Analyzer<>(new BasicVerifier()).analyze(owner, opt);
             } catch (AnalyzerException e) {
                 report.warnings.add(where + ": optimized code failed verification, kept original (" + e.getMessage() + ")");
+                t.finished(OptimizerTrace.Outcome.VERIFY_FAILED, e.getMessage(), opt);
                 return null;
             }
 
@@ -131,11 +156,15 @@ public final class Optimizer {
             mn.localVariables = null;
             mn.visibleLocalVariableAnnotations = null;
             mn.invisibleLocalVariableAnnotations = null;
+            t.finished(OptimizerTrace.Outcome.REPLACED, String.format(
+                    "%d -> %d bytes, %d -> %d instructions", bb, ba, ib, ia), opt);
             return new Report.MethodChange(owner, mn.name, mn.desc, ib, ia, bb, ba, before, after, what);
         } catch (IRBuilder.UnsupportedCodeException e) {
+            t.finished(OptimizerTrace.Outcome.UNSUPPORTED, e.getMessage(), null);
             return null;
         } catch (RuntimeException e) {
             report.warnings.add(where + ": internal error, kept original (" + e + ")");
+            t.finished(OptimizerTrace.Outcome.INTERNAL_ERROR, e.toString(), null);
             return null;
         }
     }
