@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { Session } from '../api/types';
 import { formatChange, methodLabel, simpleClassName } from '../state/derived';
@@ -155,6 +155,7 @@ function Log({ session }: { session: Session }) {
 
 export function BottomPanel({ session, collapsed, onToggle, onJumpToLine }: Props) {
   const [tab, setTab] = useState<Tab>('summary');
+  const tabsRef = useRef<HTMLDivElement>(null);
   const problemCount = session?.compilation.diagnostics.length ?? 0;
   const failed = session?.status === 'compile-error';
   const active: Tab = failed ? 'problems' : tab;
@@ -164,27 +165,60 @@ export function BottomPanel({ session, collapsed, onToggle, onJumpToLine }: Prop
     { id: 'classes', label: 'Classes' },
     { id: 'log', label: 'Decisions' },
   ];
+
+  const enabledTabs = tabs.filter((t) => !(!session || (failed && t.id !== 'problems')));
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (enabledTabs.length === 0) return;
+    const currentIndex = enabledTabs.findIndex((t) => t.id === active);
+    let nextIndex = -1;
+
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      nextIndex = currentIndex < 0 || currentIndex === enabledTabs.length - 1 ? 0 : currentIndex + 1;
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      nextIndex = currentIndex <= 0 ? enabledTabs.length - 1 : currentIndex - 1;
+    } else if (e.key === 'Home') {
+      nextIndex = 0;
+    } else if (e.key === 'End') {
+      nextIndex = enabledTabs.length - 1;
+    }
+
+    if (nextIndex >= 0) {
+      e.preventDefault();
+      const target = enabledTabs[nextIndex]!;
+      setTab(target.id);
+      if (collapsed) onToggle();
+      const buttons = tabsRef.current?.querySelectorAll<HTMLButtonElement>('button[role="tab"]:not(:disabled)');
+      buttons?.[nextIndex]?.focus();
+    }
+  };
+
   return (
     <section className="bottom" aria-label="Run details">
-      <div className="bottom__tabs" role="tablist" aria-label="Run details">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            id={`tab-${t.id}`}
-            aria-selected={active === t.id}
-            aria-controls={collapsed ? undefined : 'bottom-panel'}
-            className="bottom__tab"
-            disabled={!session || (failed && t.id !== 'problems')}
-            onClick={() => {
-              setTab(t.id);
-              if (collapsed) onToggle();
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div ref={tabsRef} className="bottom__tabs" role="tablist" aria-label="Run details" onKeyDown={onKeyDown}>
+        {tabs.map((t) => {
+          const isSelected = active === t.id;
+          const isDisabled = !session || (failed && t.id !== 'problems');
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              id={`tab-${t.id}`}
+              aria-selected={isSelected}
+              tabIndex={isSelected ? 0 : -1}
+              aria-controls={collapsed ? undefined : 'bottom-panel'}
+              className="bottom__tab"
+              disabled={isDisabled}
+              onClick={() => {
+                setTab(t.id);
+                if (collapsed) onToggle();
+              }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
         <span className="panel-head__spacer" />
         <IconButton label={collapsed ? 'Expand details panel' : 'Collapse details panel'} onClick={onToggle}>
           {collapsed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}

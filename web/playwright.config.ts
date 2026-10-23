@@ -13,7 +13,13 @@ const localJdk = existsSync(tools)
   ? readdirSync(tools).find((d) => d.startsWith('jdk-21'))
   : undefined;
 const env: Record<string, string> = { ...(process.env as Record<string, string>) };
-if (localJdk) env.JAVA_HOME = resolve(tools, localJdk, 'Contents/Home');
+if (localJdk && !env.JAVA_HOME) {
+  const macHome = resolve(tools, localJdk, 'Contents/Home');
+  env.JAVA_HOME = existsSync(macHome) ? macHome : resolve(tools, localJdk);
+}
+
+const isWin = process.platform === 'win32';
+const joptBin = resolve(root, 'build/install/jopt/bin', isWin ? 'jopt.bat' : 'jopt');
 
 export default defineConfig({
   testDir: 'e2e',
@@ -28,7 +34,7 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
   },
   webServer: {
-    command: `${resolve(root, 'build/install/jopt/bin/jopt')} playground --port ${PORT} --static ${resolve(here, 'dist')}`,
+    command: `"${joptBin}" playground --port ${PORT} --static "${resolve(here, 'dist')}"`,
     url: `http://localhost:${PORT}/api/health`,
     reuseExistingServer: false,
     timeout: 60_000,

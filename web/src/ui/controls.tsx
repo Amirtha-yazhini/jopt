@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import type { Tone } from './vocabulary';
 
 interface IconButtonProps {
@@ -45,23 +45,54 @@ interface SegmentedProps<T extends string> {
   onChange: (value: T) => void;
 }
 
-/** A small radio group styled as a segmented control. */
+/** A small radio group styled as a segmented control with WAI-ARIA roving tabindex. */
 export function Segmented<T extends string>({ label, value, options, onChange }: SegmentedProps<T>) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const enabled = options.filter((o) => !o.disabled);
+    if (enabled.length === 0) return;
+    const currentIndex = enabled.findIndex((o) => o.value === value);
+    let nextIndex = -1;
+
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      nextIndex = currentIndex < 0 || currentIndex === enabled.length - 1 ? 0 : currentIndex + 1;
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      nextIndex = currentIndex <= 0 ? enabled.length - 1 : currentIndex - 1;
+    } else if (e.key === 'Home') {
+      nextIndex = 0;
+    } else if (e.key === 'End') {
+      nextIndex = enabled.length - 1;
+    }
+
+    if (nextIndex >= 0) {
+      e.preventDefault();
+      const targetOption = enabled[nextIndex]!;
+      onChange(targetOption.value);
+      const buttons = containerRef.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)');
+      buttons?.[nextIndex]?.focus();
+    }
+  };
+
   return (
-    <div className="segmented" role="radiogroup" aria-label={label}>
-      {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          role="radio"
-          aria-checked={o.value === value}
-          className="segmented__item"
-          disabled={o.disabled}
-          onClick={() => onChange(o.value)}
-        >
-          {o.label}
-        </button>
-      ))}
+    <div ref={containerRef} className="segmented" role="radiogroup" aria-label={label} onKeyDown={onKeyDown}>
+      {options.map((o) => {
+        const checked = o.value === value;
+        return (
+          <button
+            key={o.value}
+            type="button"
+            role="radio"
+            aria-checked={checked}
+            tabIndex={checked ? 0 : -1}
+            className="segmented__item"
+            disabled={o.disabled}
+            onClick={() => onChange(o.value)}
+          >
+            {o.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

@@ -66,5 +66,5 @@ tasks.register('playground', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'jopt.Main'
     workingDir = rootDir
-    args 'playground', '--port', (project.findProperty('playgroundPort') ?: '7070').toString()
+    args 'playground', '--port', (project.findProperty('playgroundPort') ?: System.getenv('PORT') ?: System.getenv('JOPT_PORT') ?: '7070').toString()
 }

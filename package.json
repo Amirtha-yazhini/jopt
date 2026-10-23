@@ -1,0 +1,15 @@
+{
+  "name": "jopt-root",
+  "private": true,
+  "description": "jopt — a Java bytecode optimizer with interactive playground",
+  "scripts": {
+    "install:web": "npm --prefix web install",
+    "dev": "npm --prefix web run dev",
+    "build": "npm --prefix web run build",
+    "typecheck": "npm --prefix web run typecheck",
+    "lint": "npm --prefix web run lint",
+    "test:web": "npm --prefix web test",
+    "test:e2e": "npm --prefix web run e2e",
+    "test": "npm --prefix web test"
+  }
+}

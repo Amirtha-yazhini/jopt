@@ -56,6 +56,7 @@ export default function App() {
   const [bottomCollapsed, setBottomCollapsed] = useState(false);
   const [narrowTab, setNarrowTab] = useState<'source' | 'pipeline' | 'inspector'>('source');
   const narrow = useMediaQuery('(max-width: 1080px)');
+  const narrowTabsRef = useRef<HTMLDivElement>(null);
   const inFlight = useRef<AbortController | null>(null);
   const requestId = useRef(0);
   const bottomRef = useRef<ImperativePanelHandle>(null);
@@ -294,19 +295,44 @@ export default function App() {
       <div className="visually-hidden" aria-live="polite">{announce}</div>
       {narrow ? (
         <main className="narrow">
-          <div className="narrow__tabs" role="tablist" aria-label="Views">
-            {(['source', 'pipeline', 'inspector'] as const).map((t) => (
-              <button
-                key={t}
-                type="button"
-                role="tab"
-                aria-selected={narrowTab === t}
-                className="bottom__tab"
-                onClick={() => setNarrowTab(t)}
-              >
-                {t === 'source' ? 'Source' : t === 'pipeline' ? 'Pipeline' : 'Inspector'}
-              </button>
-            ))}
+          <div
+            ref={narrowTabsRef}
+            className="narrow__tabs"
+            role="tablist"
+            aria-label="Views"
+            onKeyDown={(e) => {
+              const tabList: ('source' | 'pipeline' | 'inspector')[] = ['source', 'pipeline', 'inspector'];
+              const cur = tabList.indexOf(narrowTab);
+              let next = -1;
+              if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = cur === tabList.length - 1 ? 0 : cur + 1;
+              else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = cur <= 0 ? tabList.length - 1 : cur - 1;
+              else if (e.key === 'Home') next = 0;
+              else if (e.key === 'End') next = tabList.length - 1;
+              if (next >= 0) {
+                e.preventDefault();
+                const target = tabList[next]!;
+                setNarrowTab(target);
+                narrowTabsRef.current?.querySelectorAll<HTMLButtonElement>('button[role="tab"]')?.[next]?.focus();
+              }
+            }}
+          >
+            {(['source', 'pipeline', 'inspector'] as const).map((t) => {
+              const isSelected = narrowTab === t;
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  role="tab"
+                  id={`narrow-tab-${t}`}
+                  aria-selected={isSelected}
+                  tabIndex={isSelected ? 0 : -1}
+                  className="bottom__tab"
+                  onClick={() => setNarrowTab(t)}
+                >
+                  {t === 'source' ? 'Source' : t === 'pipeline' ? 'Pipeline' : 'Inspector'}
+                </button>
+              );
+            })}
           </div>
           <div className="narrow__view panel">
             {narrowTab === 'source' ? sourcePanel : narrowTab === 'pipeline' ? pipelineArea : inspectorArea}

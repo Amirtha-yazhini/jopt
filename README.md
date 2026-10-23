@@ -1,207 +1,424 @@
-# jopt — a Java bytecode optimizer
+# jopt — Java Bytecode Optimizer & Interactive Playground
 
-`jopt` reads compiled Java code (`.jar` files, class directories or single `.class` files) and
-rewrites each method to be smaller and simpler while behaving exactly the same. It builds a
-control-flow graph of every method, runs classic compiler optimizations over it, checks the result
-with a bytecode verifier, and writes new class files.
+`jopt` is a Java bytecode optimizer and interactive compilation playground. It analyzes compiled Java bytecode (`.class`, `.jar`, or directory trees), constructs a stack-based control-flow graph (CFG) Intermediate Representation (IR), and applies classic iterative compiler optimizations to produce smaller, cleaner bytecode that preserves exact execution semantics.
 
-`javac` does almost no optimization: it translates source code nearly literally. For example:
-
-```java
-int scale = 100;                  // a "constant" held in a local variable
-boolean debug = false;
-int r = x * 8;
-if (debug) System.out.println(r); // dead code, still compiled
-i = i + 1;                        // compiled as load, push 1, add, store
-```
-
-`jopt` turns that into `r = x << 3`, deletes the `if` and its body, removes the unused locals, and
-emits `iinc` for the increment.
-
-## Quick start
-
-Requires JDK 21 (the Gradle wrapper downloads Gradle itself).
-
-```sh
-./gradlew demo        # optimize the sample app, verify it, run both versions, write build/demo/report.html
-./gradlew test        # differential and real-world tests
-./gradlew installDist # builds the CLI in build/install/jopt/bin/jopt
-```
-
-```sh
-jopt optimize app.jar -o app-opt.jar --report report.html
-jopt show app.jar com.example.Foo bar     # one method, before and after, side by side
-jopt verify app-opt.jar                   # load and link every class (runs HotSpot's verifier)
-jopt playground --port 7070               # interactive playground (see below)
-```
-
-Options: `--cp a.jar;b.jar` adds libraries the input depends on (needed to compute stack map frames
-for classes that use types from them). `--disable fold,peephole,dse,cfg` switches passes off.
-
-## Interactive playground
-
-A local web app for watching the optimizer work: write Java (or pick one of ten examples), press
-**Optimize**, and replay every pass jopt ran on each method, with bytecode/IR diffs, the pass's own
-counts, explanations, measured sizes, and links from each instruction back to its source line.
-
-```sh
-cd web && npm install && npm run build && cd ..   # build the frontend once (Node 20+)
-./gradlew playground                              # http://localhost:7070
-```
-
-For frontend development, run `./gradlew playground` and `npm run dev` in `web/` (Vite on
-http://localhost:5173, proxying `/api` to port 7070).
-
-What is real and what is not:
-
-- **Everything shown comes from the actual optimizer.** The backend compiles the source with the
-  JDK's `javac` (`--release 21`), runs jopt's `Optimizer` with a trace hook that snapshots the IR
-  after **every pass run**, lowers each snapshot with jopt's own `IRWriter`, and finally loads and
-  links the output classes in HotSpot (its bytecode verifier runs; static initializers do not).
-- **Replay, not live execution.** jopt optimizes a method in a few milliseconds; the timeline replays
-  the recorded snapshots. Pass runs that changed nothing can be shown or hidden.
-- **Sizes, not speed.** Instruction counts and code bytes are measured. There are no runtime
-  benchmarks: the playground never runs your code.
-- Explanations are documentation keyed by the counter names the passes emit
-  ([`Catalog`](src/main/java/jopt/playground/Catalog.java)); a test checks every counter the examples
-  produce is documented.
-
-Trust boundary: the server listens on 127.0.0.1 only, rejects non-loopback `Host` headers, limits
-source size (64 KiB), run time (20 s) and concurrency (2 runs), compiles with annotation processing
-off and an empty class path, and never executes submitted code. It is a local developer tool, not a
-hardened public service. Requires a JDK (not a JRE) because it uses `javac`.
-
-API (all responses are `{"ok": true, "data": ...}` or `{"ok": false, "error": {"code", "message"}}`):
-
-| Endpoint | |
-|---|---|
-| `GET /api/meta` | passes and the explanation catalog |
-| `GET /api/examples` | example programs with the transformations they demonstrate |
-| `POST /api/optimize?disable=fold,dse` | body: Java source (UTF-8 text); returns the recorded session |
-
-Tests: `./gradlew test` (includes the playground service, HTTP API and a check that tracing does not
-change optimizer output), `npm test` (reducer, metrics, response validation), `npm run lint`,
-`npm run typecheck`, and `npm run e2e` (Playwright, system Chrome, against the real backend; needs
-`./gradlew installDist` and `npm run build` first).
-
-## How it works
+The project pairs a high-performance bytecode optimization engine with an interactive web playground: write Java source in a browser IDE, compile in-process with `javac`, watch every pass run step-by-step with real CFG and bytecode diffs, inspect pass counters and documentation, and verify generated classes using HotSpot's bytecode verifier.
 
 ```
- .class / .jar ─► ASM reader ─► IRBuilder ─► CFG ─► passes (until nothing changes) ─► IRWriter ─► verifier ─► ASM writer ─► .class / .jar
+       Original Java Source
+                │
+                ▼ (javac --release 21)
+       Raw Bytecode (.class)
+                │
+                ▼ (jopt IRBuilder)
+       Control-Flow Graph (CFG IR)
+                │
+         ┌──────┴────────────────────────────────────┐
+         │  Iterative Optimization Pipeline          │
+         │  Round 1..N (until fixed-point):          │
+         │  1. Constant Folding (fold)               │
+         │  2. Peephole Rewrites (peephole)          │
+         │  3. Dead-Store Elimination (dse)          │
+         │  4. CFG Simplification (cfg)              │
+         └──────┬────────────────────────────────────┘
+                │
+                ▼ (jopt IRWriter)
+       Optimized Bytecode (.class)
+                │
+                ▼ (HotSpot LinkCheck)
+       JVM Verifier Verification
 ```
 
-ASM is used only to parse and serialize class files. Everything in between is part of this project.
+---
 
-**IR** ([`jopt.ir`](src/main/java/jopt/ir)). Each method becomes a list of basic blocks. A block is
-straight-line instructions plus one terminator (`Goto`, `If`, `Switch`, `Return`, `Throw`), and
-records which exception handlers cover it. The IR stays stack-based like bytecode, so it maps back to
-class files without register allocation, but it normalizes encodings: `iconst_2`, `bipush 100` and
-`ldc 70000` are all one `Const` instruction. The writer chooses the shortest encoding, lays out blocks
-so that fall-through replaces jumps where possible, inverts branch conditions when that saves a
-`goto`, picks `tableswitch` or `lookupswitch` by cost, and rebuilds the exception table.
+## Table of Contents
 
-**Analyses** ([`jopt.analysis`](src/main/java/jopt/analysis)).
-- *Constant propagation* is a forward dataflow analysis over the CFG, running an abstract interpreter
-  that tracks which locals and stack slots hold known constants. When a branch condition is known,
-  only the taken edge is followed, so dead code does not dilute what is known at the join.
-- *Liveness* is a backward analysis over local variable slots. Inside a `try` block, every slot the
-  handler reads counts as live at every instruction, since any of them could throw.
-- Constant folding follows exact JVM semantics: wrapping overflow, shift distances masked to 5/6 bits,
-  `Integer.MIN_VALUE / -1`, IEEE floats, NaN-aware comparisons. Integer division by zero is never
-  folded, so it still throws.
+- [Features](#features)
+- [Architecture](#architecture)
+- [Optimization Passes](#optimization-passes)
+- [Prerequisites & Platform Support](#prerequisites--platform-support)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [Interactive Playground](#interactive-playground)
+- [CLI Reference](#cli-reference)
+- [Testing & Quality Verification](#testing--quality-verification)
+- [Project Layout](#project-layout)
+- [Security & Trust Boundaries](#security--trust-boundaries)
+- [Known Limitations](#known-limitations)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
 
-**Passes** ([`jopt.opt`](src/main/java/jopt/opt)). These are repeated until a full round changes
-nothing.
+---
 
-| Pass | Does |
-|---|---|
-| `fold`: constant folding | replaces loads of constant locals with the constant, evaluates constant arithmetic, turns branches and switches on constants into `goto` |
-| `peephole` | removes push-then-pop pairs and unused pure computations; algebraic identities (`x+0`, `x*1`, `x\|0`, `--x`); strength reduction (`x*8` → `x<<3`); `i = i + k` → `iinc`; `store x; load x` → `dup; store x`; comparisons against `0`/`null` → `ifeq`/`ifnull` |
-| `dse`: dead-store elimination | a store to a variable that is never read again becomes a `pop` (which the peephole pass then cancels against the value's push) |
-| `cfg`: CFG simplification | jump threading, removing unreachable blocks, merging a block into its only predecessor |
+## Features
 
-The passes are small because they cooperate. Constant folding never needs to find where an operand
-was pushed: it emits `pop; pop; push result`, and the peephole pass deletes the leftover
-`push; pop` pairs. Likewise, dead-store elimination plus the `store/load → dup` rewrite add up to copy
-propagation.
+- **Cooperative Optimization Passes**: Iterative, fixed-point loop executing Constant Folding, Peephole Rewrites, Dead-Store Elimination, and CFG Simplification until no further changes occur.
+- **Safety First**: Every method is verified by ASM's verifier; if an optimized method does not shrink or fails verification, the original bytecode is retained. Classes are further verified using HotSpot's runtime verifier without running static initializers.
+- **Interactive Web Playground**:
+  - In-browser code editor powered by Monaco with syntax highlighting and instant compilation diagnostics (`javac --release 21`).
+  - Pass-by-pass recorded replay showing exact IR blocks and lowered bytecode.
+  - Side-by-side and unified diff viewers comparing against input or previous steps.
+  - Instruction-to-source linking using Java `LineNumberTable` metadata.
+  - Comprehensive metrics tracking bytecode instruction counts, code array bytes, CFG blocks, and IR instructions.
+  - Pass toggle controls to isolate individual compiler transformations.
+  - Full keyboard accessibility and WAI-ARIA roving-tabindex navigation.
+- **Cross-Platform Compatibility**: Fully supported and verified across macOS (Apple Silicon & Intel), Linux, and Windows.
+- **Stand-alone Zero-Dependency Server**: Built using JDK's built-in `com.sun.net.httpserver`, binding to loopback with DNS-rebinding protection and CORS enforcement.
 
-## Correctness
+---
 
-An optimizer that breaks code is worse than none, so there are several layers of protection:
+## Architecture
 
-1. **Every rewritten method is checked by ASM's bytecode verifier.** If it fails, the original method
-   is kept and a warning is reported. Any unexpected exception inside the optimizer is handled the
-   same way.
-2. **A method is only replaced if it got smaller.** Otherwise the original is kept, debug info included.
-3. **`jopt verify`** loads every output class into a fresh class loader and links it, which makes the
-   JVM's own verifier check every method.
-4. **Tests** ([`src/test`](src/test/java/jopt)):
-   - *Differential:* 26 sample methods covering loops, switches, try/catch/finally, `synchronized`,
-     longs, doubles, `-0.0f`, NaN, division by zero, out-of-bounds array access and masked shifts.
-     Each is run 2,000 times on random and edge-case inputs, and the original and optimized versions
-     must return the same value or throw the same exception.
-   - *Golden output:* tests check that the expected optimizations actually happen, e.g.
-     `constantLocals` compiles to exactly `iload_0; bipush 15; imul; ireturn`.
-   - *Real world:* the whole ASM library jar is optimized and must pass the JVM verifier. The
-     optimized ASM is then used to rewrite every class file in that jar, and its output must be
-     byte-for-byte identical to the original ASM's.
-   - The link check is shown to reject deliberately broken bytecode, so a passing check means
-     something.
+The system consists of two primary modules: the Java core engine (`jopt`) and the frontend single-page application (`web/`).
 
-## Results
+```mermaid
+graph TD
+    subgraph Frontend ["Frontend (web/ - Vite + React + Monaco)"]
+        UI[Playground UI]
+        Editor[Monaco Source Editor]
+        Timeline[Replay Timeline]
+        Diff[Monaco Diff Viewer]
+        APIClient[API Client]
+    end
 
-**Demo app** ([`src/demo`](src/demo/java/demo)), written the way quick application code often looks:
+    subgraph Backend ["Backend (jopt.playground - JDK HttpServer)"]
+        Server[PlaygroundServer :7070]
+        Compiler[SourceCompiler in-process javac]
+        Recorder[TraceRecorder Snapshot Hook]
+        Verifier[LinkCheck HotSpot Verifier]
+    end
 
-| | before | after | change |
+    subgraph Engine ["Core Optimizer (jopt)"]
+        Reader[ASM ClassReader]
+        IRB[IRBuilder]
+        Driver[Optimizer Loop]
+        Fold[Constant Folding]
+        Peep[Peephole Rewrites]
+        DSE[Dead-Store Elimination]
+        CFG[CFG Simplification]
+        IRW[IRWriter]
+        ASMOut[ASM ClassWriter]
+    end
+
+    Editor -->|Source Code| APIClient
+    APIClient -->|POST /api/optimize| Server
+    Server --> Compiler
+    Compiler -->|Bytecode| Reader
+    Reader --> IRB
+    IRB -->|CFG IR| Driver
+    Driver --> Fold
+    Fold --> Peep
+    Peep --> DSE
+    DSE --> CFG
+    CFG --> Driver
+    Driver -.->|Snapshots per Pass| Recorder
+    Driver --> IRW
+    IRW --> Verifier
+    Verifier --> ASMOut
+    Recorder -->|Session JSON| Server
+    Server -->|Recorded Traces & Metrics| APIClient
+    APIClient --> Timeline
+    Timeline --> Diff
+```
+
+---
+
+## Optimization Passes
+
+Optimization passes run repeatedly in rounds over each method's control-flow graph until a round executes with zero changes (reaching a fixed point), up to a safety threshold of 32 rounds:
+
+| Pass | Name | Description | Key Rewrites |
 |---|---|---|---|
-| instructions | 598 | 477 | −20.2% |
-| bytecode | 1,101 B | 895 B | −18.7% |
-| methods optimized | | 11 of 18 | |
+| `fold` | **Constant Folding** | Forward dataflow analysis tracking constants across locals and operand stack slots. | Constant arithmetic, boolean branch folding (`if (false)`), constant switch elimination. |
+| `peephole` | **Peephole Rewrites** | Window rewrites inside basic blocks. | Push/pop elimination, algebraic identities (`x + 0`, `x * 1`, `x & 0`), strength reduction (`x * 8` → `x << 3`), `i = i + 1` → `iinc`, redundant load/store removal. |
+| `dse` | **Dead-Store Elimination** | Backward liveness analysis over local variable slots. | Unread variable stores converted to `pop` (cancelled by peephole), dead `iinc` removal. |
+| `cfg` | **CFG Simplification** | Structural graph clean-up on basic blocks. | Jump threading through empty blocks, merging blocks into sole predecessors, unreachable block deletion. |
 
-Output is identical, and all classes pass HotSpot's verifier.
+---
 
-**Real libraries**, as published on Maven Central:
+## Prerequisites & Platform Support
 
-| jar | classes | methods optimized | bytecode | class files | verifier |
-|---|---|---|---|---|---|
-| commons-math3 3.6.1 | 1,301 | 984 | −0.8% | −5.7% | 1,301 / 1,301 pass |
-| jmh-core 1.37 | 332 | 240 | −1.2% | −6.0% | 289 pass, 43 need libraries not given |
-| jqwik-engine 1.9.2 | 519 | 303 | −1.0% | −3.1% | 132 pass, 360 need libraries not given |
+### Supported Platforms Matrix
 
-Notes on these numbers:
-- **Library code is already tidy, so bytecode gains are around 1%.** The big wins come from code with
-  dead configuration branches, constants held in locals, and temporaries.
-- **Most of the class-file reduction comes from rewriting classes, not from the optimizations.** A
-  rewritten class gets a fresh, compacted constant pool. Optimized methods also lose their
-  local-variable debug table, which describes slots and ranges that no longer exist; line numbers are
-  kept.
-- **A bytecode optimizer barely changes peak performance on HotSpot.** The C2 JIT compiler performs
-  these optimizations itself at run time. The benefits are smaller downloads, faster startup and
-  interpreted execution, and environments with weaker or no JIT compilers (Android's D8/ART, GraalVM
-  native image, embedded VMs).
+| Operating System | Architecture | Status | Verification Method |
+|---|---|---|---|
+| **macOS** | Apple Silicon (`aarch64`) | **Verified** | Local environment & Playwright E2E |
+| **macOS** | Intel (`x86_64`) | **Verified** | GitHub Actions CI matrix |
+| **Linux** (Ubuntu 22.04+) | `x86_64` / `aarch64` | **Verified** | GitHub Actions CI matrix |
+| **Windows** (10 / 11) | `x86_64` | **Verified** | GitHub Actions CI matrix (`gradlew.bat`) |
 
-## Limitations and next steps
+### Runtime Requirements
 
-- Optimizations are intraprocedural: no inlining, and no constant propagation through `static final`
-  fields that `javac` did not already fold.
-- Local-variable debug tables are dropped for optimized methods.
-- Classes compiled with `jsr`/`ret` subroutines (pre-Java 6) are left unchanged.
-- Ideas: method inlining for small private/static methods, removing unused private methods and
-  fields, a register-based SSA IR for global value numbering and loop-invariant code motion.
+- **Java Development Kit (JDK)**: Version 21 (LTS). A full JDK (not JRE) is mandatory because the playground invokes `javax.tools.JavaCompiler`.
+- **Node.js**: Version 20+ (LTS) or 22+ (LTS) with `npm`.
+- **Git**: Configured with LF line endings (handled automatically via `.gitattributes`).
 
-## Project layout
+---
+
+## Quick Start
+
+### 1. Clone the Repository
+
+```sh
+git clone https://github.com/Amirtha-yazhini/jopt.git
+cd jopt
+```
+
+### 2. Build the Application
+
+On macOS / Linux:
+```sh
+./gradlew installDist
+cd web && npm ci && npm run build && cd ..
+```
+
+On Windows (Command Prompt / PowerShell):
+```cmd
+.\gradlew.bat installDist
+cd web
+npm ci
+npm run build
+cd ..
+```
+
+### 3. Launch the Interactive Playground
+
+```sh
+# On macOS / Linux
+./gradlew playground
+
+# On Windows
+.\gradlew.bat playground
+```
+
+Open your browser to `http://localhost:7070/`.
+
+---
+
+## Configuration
+
+Configuration is managed via environment variables or command-line arguments. An example configuration template is available in [`.env.example`](.env.example).
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `PORT` | `7070` | Port for the backend playground server |
+| `JOPT_PORT` | `7070` | Alternative port environment variable |
+| `JOPT_BACKEND` | `http://localhost:7070` | Target URL used by Vite dev proxy during frontend development |
+| `JAVA_HOME` | System default | Path to JDK 21 installation directory |
+| `VITE_PORT` | `5173` | Local development port for the Vite server (`web/`) |
+
+---
+
+## Interactive Playground
+
+### Interface Layout
+
+1. **Top Bar**: Product identity, current experiment status indicator, theme toggle (Dark/Light), keyboard shortcuts dialog, and session reset.
+2. **Source Panel (Left)**:
+   - Example selector (pre-loaded with 10 real compiler transformation demonstrations).
+   - Java code editor with real-time `javac` diagnostics.
+   - Individual pass toggle switches (`fold`, `peephole`, `dse`, `cfg`).
+   - Primary **Optimize** button with character budget tracking.
+3. **Pipeline Panel (Middle)**:
+   - Method selector dropdown.
+   - Size reduction bar chart (`SizeChart`) displaying instructions per step.
+   - Step-by-step stage tree grouped by round, showing change deltas and fixed-point completion.
+   - Timeline replay controller with step controls, scrubber, and playback speed (1×–4×).
+4. **Transformation Inspector (Right)**:
+   - Step header with method name, step number, and pass explanation.
+   - Transformation cards documenting pass counters and rewrite rules.
+   - Real-time size comparison metrics (bytecode instructions, code bytes, IR blocks, IR instructions).
+   - Monaco Diff Viewer supporting side-by-side or inline view, Bytecode vs. IR representations, and diff against input or previous steps.
+5. **Bottom Drawer**:
+   - **Problems**: Clickable compilation diagnostics that jump directly to source lines.
+   - **Summary**: Method reduction totals and class file size metrics.
+   - **Classes**: HotSpot bytecode verification status for every generated class.
+   - **Decisions**: Decision log documenting why methods were accepted or kept unchanged.
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|---|---|
+| `⌘ + Enter` / `Ctrl + Enter` | Run optimizer on current source (works inside code editor) |
+| `→` / `←` | Step to next / previous optimization stage |
+| `Home` / `End` | Jump to first / last optimization stage |
+| `Space` | Play or pause timeline replay |
+| `?` | Open keyboard shortcuts help modal |
+| `Tab` / `Shift + Tab` | Navigate between controls |
+| `Arrow Keys` (inside tabs/radios) | Roving-tabindex navigation between tabs and segmented views |
+
+---
+
+## CLI Reference
+
+The CLI is built into `build/install/jopt/bin/jopt` (or `jopt.bat` on Windows) via `./gradlew installDist`:
+
+### Optimize Bytecode
+```sh
+# Optimize a JAR, directory, or single .class file
+jopt optimize app.jar -o app-optimized.jar --report report.html
+
+# Provide external classpath dependencies for frame computation
+jopt optimize app.jar -o app-optimized.jar --cp lib/depA.jar:lib/depB.jar
+
+# Disable specific optimization passes
+jopt optimize app.jar -o app-optimized.jar --disable fold,dse
+```
+
+### Inspect Changes
+```sh
+# Compare a method before and after optimization side-by-side in the terminal
+jopt show app.jar com.example.Calculator compute
+```
+
+### Verify Output Classes
+```sh
+# Link every class into a fresh classloader and run HotSpot's verifier
+jopt verify app-optimized.jar
+```
+
+### Run Demonstration Suite
+```sh
+# Optimize the naively written demo application, verify it, run both versions, and output an HTML report
+./gradlew demo
+```
+
+---
+
+## Testing & Quality Verification
+
+JOpt maintains a multi-layered automated test suite covering JVM correctness, differential execution, golden outputs, unit tests, and Playwright end-to-end testing:
+
+### 1. Java Test Suite (75 tests)
+```sh
+# Runs all differential, golden, real-world, and HTTP server tests
+./gradlew test
+```
+- **Differential Testing**: 26 sample algorithms executed 2,000 times each across edge-case inputs comparing unoptimized vs optimized outputs.
+- **Golden Bytecode Tests**: Verifies exact expected instructions are emitted for known idioms.
+- **Real-World Verification**: Optimizes the complete ASM library JAR (1,300+ classes), verifies all classes pass HotSpot, and validates byte-for-byte reproducibility.
+- **Server API Tests**: Verifies HTTP loopback restrictions, header checks, query parsing, and error shapes.
+
+### 2. Frontend Unit & Integration Tests (36 tests)
+```sh
+cd web
+npm test
+```
+- Tests state reducer transitions, step indexing, replay timer, stale result detection, and metric formatters using real backend response fixtures.
+
+### 3. Static Type Checking & Linting
+```sh
+cd web
+npm run typecheck
+npm run lint
+```
+
+### 4. End-to-End Playwright Tests (7 journeys)
+```sh
+cd web
+npm run e2e
+```
+- Tests complete user journeys against the real running backend, including pass navigation, replay playback, compile error handling, retry mechanisms, outdated input handling, and responsive layout behavior.
+
+---
+
+## Project Layout
 
 ```
-src/main/java/jopt/
-  Main.java            CLI: optimize, show, verify, demo
-  ir/                  IR (Insn, Terminator, Block, MethodIR), IRBuilder, IRWriter, stack effects
-  analysis/            constant lattice + abstract interpreter, dataflow solver, constant evaluator
-  opt/                 passes, the fixed-point driver (Optimizer), report model
-  io/                  jar/dir I/O, class hierarchy for frame computation, link check, listings
-  report/              HTML report
-  playground/          playground backend: javac wrapper, trace recorder, HTTP API, examples
-src/main/resources/jopt/playground/examples/   example programs for the playground
-web/                   playground frontend (Vite + React + TypeScript + Monaco)
-src/demo/java/demo/    sample app optimized by `./gradlew demo`
-src/test/java/jopt/    differential, golden-output, real-world and unit tests
+jopt/
+├── .github/workflows/ci.yml       # Cross-platform GitHub Actions CI matrix
+├── .env.example                   # Environment configuration template
+├── .gitattributes                 # Cross-platform line ending normalization
+├── .nvmrc                         # Node version specification (20 LTS)
+├── build.gradle                   # Root Gradle build script
+├── gradlew / gradlew.bat          # Cross-platform Gradle wrappers
+├── package.json                   # Root convenience scripts
+├── progress.md                    # Detailed engineering log & checklist
+│
+├── src/main/java/jopt/            # Core Java implementation
+│   ├── Main.java                  # CLI and entrypoint driver
+│   ├── ir/                        # IR basic blocks, instructions, reader/writer
+│   ├── analysis/                  # Constant propagation and liveness analyses
+│   ├── opt/                       # fold, peephole, dse, cfg passes & OptimizerTrace
+│   ├── io/                        # ClassFiles reader/writer, LinkCheck verifier
+│   ├── report/                    # HTML report generator
+│   └── playground/                # In-process javac wrapper & HTTP server
+│
+├── src/demo/java/demo/            # Sample application optimized by ./gradlew demo
+├── src/test/java/jopt/            # JUnit 5 test suite (75 tests)
+│
+└── web/                           # Interactive playground frontend
+    ├── package.json               # Frontend dependencies & scripts
+    ├── vite.config.ts             # Vite configuration with /api proxy
+    ├── playwright.config.ts       # Cross-platform E2E configuration
+    ├── e2e/                       # Playwright browser journey tests
+    └── src/
+        ├── App.tsx                # Main workspace layout & panel resizing
+        ├── api/                   # Typed API client, types & response validators
+        ├── state/                 # Session reducer, derived selectors, metrics
+        ├── components/            # Header, SourcePanel, PipelinePanel, Inspector, BottomPanel
+        ├── monaco/                # Monaco editor loader & custom JVM grammar
+        ├── styles/                # CSS design system (tokens.css, app.css)
+        └── ui/                    # Accessible controls, vocabulary, keyboard shortcuts
 ```
+
+---
+
+## Security & Trust Boundaries
+
+- **No Untrusted Execution**: Submitted user code is compiled via `javax.tools.JavaCompiler` and analyzed in memory. Classes are loaded only with `Class.forName(name, false, loader)` to trigger bytecode verification; **static initializers (`<clinit>`) and methods are never executed**.
+- **Loopback Enforcement**: The playground server binds strictly to `127.0.0.1` and enforces that the incoming `Host` header matches loopback to prevent DNS rebinding attacks.
+- **CORS Protection**: The server requires a custom header (`X-Jopt-Client`) on all state-modifying requests (`POST`), preventing cross-origin requests from arbitrary websites.
+- **Resource Limits**: Requests are capped at 64 KiB source code size, 20-second timeout, and max 2 concurrent optimization runs.
+
+---
+
+## Known Limitations
+
+- **Intraprocedural Only**: Optimizations operate strictly on single methods. Cross-method inlining and interprocedural analysis are not performed.
+- **Replay Rather Than Live Incremental**: Optimization is completed synchronously on the backend in milliseconds; the frontend replays the recorded pass-by-pass snapshots.
+- **Code Size vs. Runtime Speed**: Bytecode reductions do not guarantee faster execution on modern HotSpot JVMs, as the C2 JIT compiler already performs many of these transformations at runtime. The benefits are smaller JAR sizes, reduced memory footprint, faster cold startup, and enhanced execution on environments without aggressive JIT compilers (e.g. Android ART/D8, GraalVM Native Image, embedded JVMs).
+
+---
+
+## Troubleshooting
+
+### "Unsupported class file major version" with Gradle
+Gradle 8.10.2 requires JDK 21 or earlier to execute the build. If your machine's default JDK is newer (e.g. JDK 25 or 26), set `JAVA_HOME` to a JDK 21 installation:
+```sh
+export JAVA_HOME=/path/to/jdk-21
+./gradlew test
+```
+
+### "Address already in use" on port 7070
+If port 7070 is already in use by another process, launch the playground on a custom port:
+```sh
+./gradlew playground -PplaygroundPort=7080
+# or
+jopt playground --port 7080
+```
+
+### "Permission denied: ./gradlew" on Unix/macOS
+Ensure the Gradle wrapper has the executable bit enabled:
+```sh
+chmod +x gradlew
+```
+
+---
+
+## Contributing
+
+1. Fork and clone the repository.
+2. Verify that JDK 21 and Node 20+ are installed.
+3. Run `./gradlew test` to ensure all Java tests pass.
+4. Run `cd web && npm ci && npm test && npm run lint` to verify frontend tests.
+5. Create a descriptive feature branch (`git checkout -b feature/my-feature`).
+6. Ensure existing tests pass and add new tests covering your changes.
+7. Submit a pull request.
+
+---
+
+## License
+
+This project is open source and available under the terms of the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).

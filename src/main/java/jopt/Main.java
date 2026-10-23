@@ -201,6 +201,13 @@ public final class Main {
 
     private static int playground(String[] args) throws Exception {
         int port = 7070;
+        String envPort = System.getenv("PORT");
+        if (envPort == null || envPort.isBlank()) envPort = System.getenv("JOPT_PORT");
+        if (envPort != null && !envPort.isBlank()) {
+            try {
+                port = Integer.parseInt(envPort.trim());
+            } catch (NumberFormatException ignored) {}
+        }
         Path web = Path.of("web", "dist");
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {

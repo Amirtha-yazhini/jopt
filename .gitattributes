@@ -1,0 +1,19 @@
+# Cross-platform line ending normalization
+* text=auto eol=lf
+
+# Windows scripts must keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Shell scripts must keep LF for Linux/macOS execution
+gradlew text eol=lf
+*.sh text eol=lf
+
+# Binary assets
+*.jar binary
+*.class binary
+*.png binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
